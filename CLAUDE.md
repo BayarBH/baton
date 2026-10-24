@@ -200,10 +200,10 @@ interface Nudge {
 
 ### Phase 2 — LLM 状态追踪
 
-- [ ] LLM provider 抽象 + Claude 实现
-- [ ] tracker 定期抽取 decisions / actionItems / openQuestions
-- [ ] 规则：`missing_decision`、`missing_owner`、会末 `recap`
-- [ ] LLM 调用可 mock，测试不依赖网络
+- [x] LLM provider 抽象 + Claude 实现
+- [x] tracker 定期抽取 decisions / actionItems / openQuestions
+- [x] 规则：`missing_decision`、`missing_owner`、会末 `recap`
+- [x] LLM 调用可 mock，测试不依赖网络
 
 ### Phase 3 — Zoom 接入
 

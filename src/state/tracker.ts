@@ -1,9 +1,10 @@
 import type { SourceEvent } from '../ingest/types.js';
 import type { MeetingState } from './meeting-state.js';
 
-/** Deterministic part of state tracking. LLM extraction (decisions etc.) lands in Phase 2. */
+/** Deterministic part of state tracking. LLM extraction lives in llm-tracker.ts. */
 export function track(state: MeetingState, ev: SourceEvent): void {
-  if (ev.type === 'tick' || ev.type === 'control') {
+  if (ev.type === 'tick' || ev.type === 'control' || ev.type === 'end') {
+    if (ev.type === 'end') state.ended = true;
     state.elapsedMs = Math.max(state.elapsedMs, ev.atMs);
   } else if (ev.type === 'participant') {
     state.elapsedMs = Math.max(state.elapsedMs, ev.atMs);

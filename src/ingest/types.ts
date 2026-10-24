@@ -23,7 +23,8 @@ export type SourceEvent =
   | ({ type: 'transcript' } & TranscriptEvent)
   | ({ type: 'participant' } & ParticipantEvent)
   | { type: 'control'; action: 'next_step'; atMs: number }
-  | { type: 'tick'; atMs: number };
+  | { type: 'tick'; atMs: number }
+  | { type: 'end'; atMs: number };
 
 export function eventTime(ev: SourceEvent): number {
   return ev.type === 'transcript' ? ev.endMs : ev.atMs;

@@ -10,6 +10,8 @@ export interface MeetingState {
   decisions: { text: string; atMs: number }[];
   actionItems: { text: string; owner?: string; atMs: number }[];
   openQuestions: { text: string; atMs: number }[];
+  unresolvedTopic?: { topic: string; sinceMs: number };
+  ended?: boolean;
 }
 
 export function createState(meetingId: string, mode: MeetingState['mode']): MeetingState {

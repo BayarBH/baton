@@ -75,5 +75,6 @@ export class ReplaySource implements TranscriptSource {
       await advance(t);
       yield { type: 'tick', atMs: t };
     }
+    yield { type: 'end', atMs: clock };
   }
 }

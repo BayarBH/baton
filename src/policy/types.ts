@@ -19,6 +19,8 @@ export interface RuleConfig {
   silentAfterMs: number;
   activeDiscussionMs: number;
   exceededRepeatMs: number;
+  missingDecisionAfterMs: number;
+  missingOwnerGraceMs: number;
 }
 
 export interface RuleContext {
