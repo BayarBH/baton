@@ -1,0 +1,85 @@
+{
+  "id": "design-sprint-lite",
+  "title": "デザインスプリント（1時間ライト版）",
+  "locale": "ja",
+  "steps": [
+    {
+      "id": "goal",
+      "name": "長期目標",
+      "timeboxMin": 5,
+      "goal": "2年後にこのプロジェクトがどうなっていたいかを1文で合意する",
+      "expectedOutput": { "description": "長期目標の文 1つ" },
+      "transition": "on_timebox",
+      "warnAtRemainingMin": [1],
+      "facilitatorScript": "楽観的に考えて、2年後このプロダクトはどうなっていたいですか？"
+    },
+    {
+      "id": "map",
+      "name": "マップ",
+      "timeboxMin": 7,
+      "goal": "顧客が目標に至るまでの流れを左から右へ簡単に描く",
+      "expectedOutput": { "description": "5〜15ステップ程度のユーザージャーニー" },
+      "transition": "on_timebox",
+      "warnAtRemainingMin": [2],
+      "facilitatorScript": "左に登場人物、右にゴール。間をシンプルな矢印でつなぎましょう。"
+    },
+    {
+      "id": "hmw",
+      "name": "How Might We",
+      "timeboxMin": 8,
+      "goal": "課題を「どうすれば〜できるか？」の問いに書き換える",
+      "expectedOutput": { "description": "一人3枚以上のHMW付箋", "perParticipant": 3 },
+      "transition": "either",
+      "warnAtRemainingMin": [2],
+      "facilitatorScript": "各自、付箋1枚につき1つ「どうすれば〜できるか？」を書いてください。"
+    },
+    {
+      "id": "crazy8",
+      "name": "Crazy 8s",
+      "timeboxMin": 8,
+      "goal": "1人8案のラフスケッチを黙々と描く",
+      "expectedOutput": { "description": "一人8コマのスケッチ", "perParticipant": 8 },
+      "transition": "on_timebox",
+      "warnAtRemainingMin": [1],
+      "silentWork": true,
+      "facilitatorScript": "紙を8つに折って、1コマ1分。話さずに描きましょう。"
+    },
+    {
+      "id": "vote",
+      "name": "ドット投票",
+      "timeboxMin": 5,
+      "goal": "各自が気になるアイデアにドットを貼る",
+      "expectedOutput": { "description": "一人3票" , "perParticipant": 3 },
+      "transition": "on_timebox",
+      "facilitatorScript": "黙って3票ずつ投票してください。同じ案に複数票もOKです。"
+    },
+    {
+      "id": "decide",
+      "name": "決定",
+      "timeboxMin": 5,
+      "goal": "決定者がプロトタイプにするアイデアを選ぶ",
+      "expectedOutput": { "description": "選ばれたアイデア 1つと理由" },
+      "transition": "manual",
+      "warnAtRemainingMin": [1],
+      "facilitatorScript": "投票結果を見て、決定者が最終判断をします。議論はそのあとで。"
+    },
+    {
+      "id": "storyboard",
+      "name": "ストーリーボード",
+      "timeboxMin": 10,
+      "goal": "選んだアイデアを6〜8コマのストーリーにする",
+      "expectedOutput": { "description": "6〜8コマのストーリーボード" },
+      "transition": "on_timebox",
+      "warnAtRemainingMin": [2],
+      "facilitatorScript": "ユーザーが最初に目にする場面から順に、コマを埋めていきましょう。"
+    },
+    {
+      "id": "recap",
+      "name": "まとめ",
+      "timeboxMin": 3,
+      "goal": "決定事項と次のアクション・担当を確認する",
+      "transition": "manual",
+      "facilitatorScript": "決まったこと、次にやること、その担当者を確認しましょう。"
+    }
+  ]
+}

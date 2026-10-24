@@ -1,0 +1,24 @@
+{
+  "name": "baton",
+  "version": "1.0.0",
+  "description": "Baton / Shikiri — AI meeting facilitator for Zoom",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "replay": "tsx scripts/replay.ts"
+  },
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "eslint": "^10.13.0",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.0",
+    "vitest": "^5.0.5"
+  }
+}
