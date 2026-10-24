@@ -39,4 +39,7 @@ export interface RuleContext {
 
 export type Rule = (ctx: RuleContext) => Candidate[];
 
+/** Quote a user-facing item: 「」 for ja/zh, "" for en. */
+export const quote = (locale: Locale, s: string) => (locale === 'en' ? `"${s}"` : `「${s}」`);
+
 export const fmtMin = (ms: number) => Math.max(1, Math.round(ms / 60_000));

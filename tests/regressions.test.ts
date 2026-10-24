@@ -1,6 +1,7 @@
 // Regressions from internal QA round 1.
 import { describe, expect, it } from 'vitest';
 import { FixtureSchema, ReplaySource } from '../src/ingest/replay-source.js';
+import { LlmConfigError, type Analysis, type AnalyzeInput, type LlmProvider } from '../src/llm/provider.js';
 import { PolicyEngine } from '../src/policy/engine.js';
 import type { Candidate } from '../src/policy/types.js';
 import { mmss } from '../src/replay.js';
@@ -103,5 +104,68 @@ describe('engine', () => {
     const c: Candidate = { key: 'k', marks: ['x'], type: 'missing_owner', priority: 2, message: '', ruleId: 'r' };
     e.decide([c], 0);
     expect(e.wasSent('x')).toBe(true);
+  });
+});
+
+describe('round 2: LLM tracking', () => {
+  const ws = WorkshopScriptSchema.parse({ id: 'w', title: 't', locale: 'en', steps: [step('work', 2), { ...step('wrap', 3), transition: 'manual' }] });
+  const fixture = { meetingId: 'm', locale: 'en', endAt: '5:00', participants: people('a', 'b'), events: [
+    { at: '1:50', dur: 5, speaker: 'a', text: 'we decide X' }, { at: '3:00', dur: 5, speaker: 'b', text: 'I take the report' },
+  ] };
+  const fake = (onCall: (input: AnalyzeInput) => Analysis | null): LlmProvider & { n: number } => {
+    const p = { n: 0, analyze: async (i: AnalyzeInput) => { p.n++; return onCall(i); } };
+    return p;
+  };
+  const extract = (input: AnalyzeInput): Analysis => {
+    const said = (s: string) => input.utterances.some((u) => u.text.includes(s));
+    return {
+      decisions: said('decide X') ? [{ id: input.known.decisions[0]?.id ?? null, text: 'X' }] : [],
+      actionItems: [{ id: input.known.actionItems[0]?.id ?? null, text: 'report', owner: said('I take') ? 'B' : null }],
+      openQuestions: [], unresolvedTopic: null,
+    };
+  };
+  const run2 = async (llm: LlmProvider) => {
+    const f = FixtureSchema.parse(fixture);
+    const session = new Session({ meetingId: 'm', locale: 'en', workshop: ws, llm });
+    return run(new ReplaySource(f, Infinity), session);
+  };
+
+  it('recap at the last step uses a fresh extraction, and a final recap carries later changes', async () => {
+    const recaps = (await run2(fake(extract))).filter((n) => n.ruleId === 'recap');
+    expect(recaps.map((n) => mmss(n.atMs))).toEqual(['02:00', '05:00']);
+    expect(recaps[0].message).toContain('- X'); // decided at 1:50, extracted when the last step began at 2:00
+    expect(recaps[0].message).toContain('report (no owner)');
+    expect(recaps[1].message).toContain('report (B)');
+  });
+
+  it('retries utterances from a failed call at the next window / final flush', async () => {
+    let first = true;
+    const p = fake((i) => {
+      if (first) { first = false; throw new Error('529'); }
+      return extract(i);
+    });
+    const recaps = (await run2(p)).filter((n) => n.ruleId === 'recap');
+    expect(recaps.at(-1)?.message).toContain('- X');
+  });
+
+  it('a setup error stops the session instead of silently running rules-only', async () => {
+    await expect(run2(fake(() => { throw new LlmConfigError('no key'); }))).rejects.toThrow('no key');
+  });
+});
+
+describe('round 2: misc', () => {
+  it('a goodbye that ends at the leave time does not cancel the leave', async () => {
+    const { nudges } = await replay({
+      meetingId: 'm', locale: 'en', endAt: '22:00',
+      participants: [{ id: 'a', name: 'Ann' }, { id: 'b', name: 'Bob' }, { id: 'c', name: 'Cat', leaveAt: '1:00' }],
+      events: [{ at: '0:50', dur: 10, speaker: 'c', text: 'bye' }, ...talk('a', 60, 22 * 60, 60), ...talk('b', 90, 22 * 60, 60)],
+    });
+    expect(nudges.filter((n) => n.message.includes('Cat'))).toEqual([]);
+  });
+
+  it('rejects a non-positive tick', () => {
+    const f = FixtureSchema.parse({ meetingId: 'm', locale: 'en', endAt: '0:10', participants: [], events: [] });
+    expect(() => new ReplaySource(f, Infinity, 0)).toThrow(RangeError);
+    expect(() => new ReplaySource(f, Infinity, NaN)).toThrow(RangeError);
   });
 });

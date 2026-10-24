@@ -44,6 +44,7 @@ export class Session {
   private readonly rules: RuleConfig;
   private readonly locale: Locale;
   readonly llm?: LlmTracker;
+  private lastStepSeen?: string;
 
   constructor(cfg: SessionConfig) {
     this.state = createState(cfg.meetingId, cfg.workshop ? 'workshop' : 'meeting');
@@ -62,7 +63,10 @@ export class Session {
     // Rules run on the clock (and once at the end), so output is independent of event batching.
     if (ev.type !== 'tick' && ev.type !== 'end') return [];
     this.runner?.tick(this.state, ev.atMs);
-    if (this.llm && (ev.type === 'end' || this.llm.due(ev.atMs))) await this.llm.update(this.state, ev.atMs);
+    // Force a fresh extraction for the final recap: at the end, and when the last workshop step begins.
+    const enteredLastStep = this.state.currentStepId !== this.lastStepSeen && !!this.runner?.current(this.state) && !this.runner.next(this.state);
+    this.lastStepSeen = this.state.currentStepId;
+    if (this.llm && (ev.type === 'end' || enteredLastStep || this.llm.due(ev.atMs))) await this.llm.update(this.state, ev.atMs);
     const ctx = {
       state: this.state,
       nowMs: ev.atMs,

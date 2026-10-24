@@ -65,7 +65,10 @@ export class ReplaySource implements TranscriptSource {
     private readonly fixture: Fixture,
     private readonly speed = 1,
     private readonly tickMs = 1000,
-  ) {}
+  ) {
+    if (!(tickMs > 0)) throw new RangeError('tickMs must be > 0');
+    if (!(speed > 0)) throw new RangeError('speed must be > 0');
+  }
 
   async *events(): AsyncIterable<SourceEvent> {
     const evs = fixtureEvents(this.fixture);

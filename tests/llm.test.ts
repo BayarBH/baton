@@ -12,11 +12,15 @@ class FakeMeetingLlm implements LlmProvider {
     const decided = has('就这样定');
     this.topicSince ??= has('发布日期')?.i;
     const owner = has('我来写') ? '张' : null;
+    const known = input.known.actionItems[0];
     return {
-      decisions: decided ? [{ text: '下周五发布' }] : [],
-      actionItems: has('release note') || input.known.actionItems.length ? [{ text: '写 release note', owner }] : [],
+      decisions: decided ? [{ id: null, text: '下周五发布' }] : [],
+      // Rewords the known item on purpose: identity must come from the id, not the text.
+      actionItems: known ? [{ id: known.id, text: `${known.text}!`, owner }] : has('release note') ? [{ id: null, text: '写 release note', owner }] : [],
       openQuestions: [],
-      unresolvedTopic: this.topicSince !== undefined && !decided ? { topic: '发布日期', sinceUtterance: this.topicSince } : null,
+      unresolvedTopic: this.topicSince !== undefined && !decided
+        ? { topic: '发布日期', sinceUtterance: input.known.unresolvedTopic ? -1 : this.topicSince, continuesKnown: !!input.known.unresolvedTopic }
+        : null,
     };
   }
 }
@@ -46,7 +50,7 @@ describe('LLM tracking on the weekly meeting (fake provider)', async () => {
   it('recap at the end lists the ownerless action item', () => {
     const r = nudges.filter((n) => n.ruleId === 'recap');
     expect(r).toHaveLength(1);
-    expect(r[0].message).toContain('写 release note（负责人待定）');
+    expect(r[0].message).toMatch(/写 release note!*（负责人待定）/);
   });
 
   it('still respects the global rate limit for non-p1 nudges', () => {
