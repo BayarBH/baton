@@ -13,7 +13,11 @@ export interface Nudge {
 }
 
 /** A rule's proposal. `key` identifies one logical occurrence; the engine sends each key at most once. */
-export type Candidate = Omit<Nudge, 'id' | 'atMs'> & { key: string };
+export type Candidate = Omit<Nudge, 'id' | 'atMs'> & {
+  key: string;
+  /** Extra keys recorded as sent with this nudge (e.g. one per person), readable by rules via `wasSent`. */
+  marks?: string[];
+};
 
 export interface RuleConfig {
   silentAfterMs: number;
@@ -30,6 +34,7 @@ export interface RuleContext {
   config: RuleConfig;
   step?: WorkshopStep;
   nextStep?: WorkshopStep;
+  wasSent: (key: string) => boolean;
 }
 
 export type Rule = (ctx: RuleContext) => Candidate[];

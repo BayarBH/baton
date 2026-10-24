@@ -12,6 +12,8 @@ export interface MeetingState {
   openQuestions: { text: string; atMs: number }[];
   unresolvedTopic?: { topic: string; sinceMs: number };
   ended?: boolean;
+  /** End of the most recent heads-down step; silence before it is not counted. */
+  silentWorkEndedAtMs?: number;
 }
 
 export function createState(meetingId: string, mode: MeetingState['mode']): MeetingState {

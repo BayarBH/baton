@@ -3,10 +3,18 @@ import { existsSync } from 'node:fs';
 import { ClaudeProvider } from '../src/llm/provider.js';
 import { mmss, replayFile } from '../src/replay.js';
 
-const { values, positionals } = parseArgs({ allowPositionals: true, options: { speed: { type: 'string', default: 'max' }, llm: { type: 'boolean', default: false } } });
+const USAGE = 'usage: npm run replay -- <fixture.json> [--speed 1x|10x|max] [--llm]';
+let args;
+try {
+  args = parseArgs({ allowPositionals: true, options: { speed: { type: 'string', default: 'max' }, llm: { type: 'boolean', default: false } } });
+} catch (err) {
+  console.error(`${(err as Error).message}\n${USAGE}`);
+  process.exit(1);
+}
+const { values, positionals } = args;
 const file = positionals[0];
 if (!file) {
-  console.error('usage: npm run replay -- <fixture.json> [--speed 1x|10x|max] [--llm]');
+  console.error(USAGE);
   process.exit(1);
 }
 const speed = values.speed === 'max' ? Infinity : Number(values.speed.replace(/x$/i, ''));

@@ -13,8 +13,9 @@ export function track(state: MeetingState, ev: SourceEvent): void {
   } else {
     state.elapsedMs = Math.max(state.elapsedMs, ev.endMs);
     state.participants[ev.speakerId] ??= { name: ev.speakerName, joinedAtMs: ev.startMs };
+    delete state.participants[ev.speakerId].leftAtMs; // speaking proves presence (e.g. a reconnect race)
     const a = (state.airtime[ev.speakerId] ??= { totalMs: 0, lastSpokeAtMs: 0 });
-    a.totalMs += Math.max(0, ev.endMs - ev.startMs);
+    a.totalMs += Math.max(0, ev.endMs - Math.max(ev.startMs, a.lastSpokeAtMs)); // events arrive by endMs, so this unions overlaps
     a.lastSpokeAtMs = Math.max(a.lastSpokeAtMs, ev.endMs);
   }
 }

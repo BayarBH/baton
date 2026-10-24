@@ -68,8 +68,9 @@ export class Session {
       nowMs: ev.atMs,
       locale: this.locale,
       config: this.rules,
-      step: this.runner?.current(this.state),
-      nextStep: this.runner?.next(this.state),
+      step: this.state.ended ? undefined : this.runner?.current(this.state),
+      nextStep: this.state.ended ? undefined : this.runner?.next(this.state),
+      wasSent: (k: string) => this.engine.wasSent(k),
     };
     return this.engine.decide(RULES.flatMap((r) => r(ctx)), ev.atMs);
   }

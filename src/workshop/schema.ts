@@ -4,21 +4,26 @@ import { z } from 'zod';
 export const LocaleSchema = z.enum(['ja', 'zh', 'en']);
 export type Locale = z.infer<typeof LocaleSchema>;
 
-export const WorkshopStepSchema = z.object({
+export const WorkshopStepSchema = z
+  .strictObject({
   id: z.string().min(1),
   name: z.string().min(1),
   timeboxMin: z.number().positive(),
   goal: z.string(),
-  expectedOutput: z.object({ description: z.string(), perParticipant: z.number().int().positive().optional() }).optional(),
+  expectedOutput: z.strictObject({ description: z.string(), perParticipant: z.number().int().positive().optional() }).optional(),
   transition: z.enum(['on_timebox', 'on_output', 'either', 'manual']),
   warnAtRemainingMin: z.array(z.number().positive()).optional(),
   facilitatorScript: z.string().optional(),
   /** Heads-down work (e.g. Crazy 8s): silence is expected, so airtime rules stay quiet. */
   silentWork: z.boolean().optional(),
-});
+  })
+  .refine((s) => (s.warnAtRemainingMin ?? []).every((m) => m < s.timeboxMin), {
+    message: 'every warnAtRemainingMin must be < timeboxMin',
+    path: ['warnAtRemainingMin'],
+  });
 
 export const WorkshopScriptSchema = z
-  .object({
+  .strictObject({
     id: z.string().min(1),
     title: z.string(),
     locale: LocaleSchema,

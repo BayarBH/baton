@@ -20,19 +20,23 @@ export class WorkshopRunner {
 
   advance(state: MeetingState, atMs: number): void {
     if (state.workshopFinished) return;
+    if (this.current(state)?.silentWork) state.silentWorkEndedAtMs = atMs;
     const next = this.next(state);
     state.currentStepId = next?.id;
     state.stepStartedAtMs = next ? atMs : undefined;
     state.workshopFinished = !next;
   }
 
-  /** Auto-advance steps whose timebox ran out. on_output is treated like manual until output detection (Phase 2). */
+  /**
+   * Auto-advance steps whose timebox ran out. on_output is treated like manual (no output detection yet).
+   * The last step never auto-finishes: it stays current so timebox_exceeded can prompt a wrap-up.
+   */
   tick(state: MeetingState, nowMs: number): void {
     for (;;) {
       const step = this.current(state);
       if (!step || state.stepStartedAtMs === undefined) return;
       const endMs = state.stepStartedAtMs + step.timeboxMin * 60_000;
-      if (nowMs < endMs || (step.transition !== 'on_timebox' && step.transition !== 'either')) return;
+      if (nowMs < endMs || (step.transition !== 'on_timebox' && step.transition !== 'either') || !this.next(state)) return;
       this.advance(state, endMs);
     }
   }

@@ -6,20 +6,29 @@ import { eventTime, type SourceEvent } from './types.js';
 
 const time = z.string().regex(/^\d+:[0-5]\d$/, 'expected "mm:ss"');
 
-export const FixtureSchema = z.object({
+export const FixtureSchema = z
+  .strictObject({
   meetingId: z.string(),
   locale: z.enum(['ja', 'zh', 'en']),
   /** Path to a workshop script, relative to the fixture file. Absent = meeting mode. */
   workshop: z.string().optional(),
   endAt: time,
-  participants: z.array(z.object({ id: z.string(), name: z.string(), joinAt: time.default('0:00'), leaveAt: time.optional() })),
+  participants: z.array(z.strictObject({ id: z.string(), name: z.string(), joinAt: time.default('0:00'), leaveAt: time.optional() })),
   events: z.array(
     z.union([
-      z.object({ at: time, dur: z.number().positive(), speaker: z.string(), text: z.string(), lang: z.enum(['ja', 'zh', 'en', 'mixed']).optional() }),
-      z.object({ at: time, control: z.literal('next_step') }),
+      z.strictObject({ at: time, dur: z.number().positive(), speaker: z.string(), text: z.string(), lang: z.enum(['ja', 'zh', 'en', 'mixed']).optional() }),
+      z.strictObject({ at: time, control: z.literal('next_step') }),
     ]),
   ),
-});
+  })
+  .superRefine((f, ctx) => {
+    const seen = new Set<string>();
+    for (const p of f.participants) {
+      if (seen.has(p.id)) ctx.addIssue({ code: 'custom', message: `duplicate participant id "${p.id}"` });
+      seen.add(p.id);
+      if (p.leaveAt && toMs(p.leaveAt) < toMs(p.joinAt)) ctx.addIssue({ code: 'custom', message: `participant "${p.id}": leaveAt before joinAt` });
+    }
+  });
 export type Fixture = z.infer<typeof FixtureSchema>;
 
 export const toMs = (mmss: string) => {
@@ -63,11 +72,14 @@ export class ReplaySource implements TranscriptSource {
     const endMs = Math.max(toMs(this.fixture.endAt), ...evs.map(eventTime));
     let clock = 0;
     let i = 0;
+    const t0 = performance.now();
+    // Sleep against an absolute anchor so timer granularity (~15ms on Windows) does not accumulate.
     const advance = async (to: number) => {
-      if (Number.isFinite(this.speed) && to > clock) await sleep((to - clock) / this.speed);
-      clock = to;
+      const wait = t0 + to / this.speed - performance.now();
+      if (Number.isFinite(this.speed) && wait >= 1) await sleep(wait);
+      clock = Math.max(clock, to);
     };
-    for (let t = 0; t <= endMs; t += this.tickMs) {
+    for (let t = 0; t <= endMs || i < evs.length; t += this.tickMs) {
       while (i < evs.length && eventTime(evs[i]) <= t) {
         await advance(eventTime(evs[i]));
         yield evs[i++];

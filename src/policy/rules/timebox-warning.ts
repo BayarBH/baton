@@ -8,12 +8,14 @@ export const timeboxWarning: Rule = ({ step, state, nowMs, locale }) => {
   const ths = [...step.warnAtRemainingMin].sort((a, b) => b - a);
   const i = ths.findIndex((m, j) => remaining <= m * 60_000 && remaining > (ths[j + 1] ?? 0) * 60_000);
   if (i < 0) return [];
-  const left = Math.ceil(remaining / 60_000);
+  const left = Math.round(remaining / 60_000);
   return [{
     key: `timebox_warning:${step.id}:${ths[i]}`,
     type: 'timebox',
     priority: 2,
     ruleId: 'timebox_warning',
-    message: { ja: `「${step.name}」残り${left}分です`, zh: `「${step.name}」还剩 ${left} 分钟`, en: `"${step.name}": ${left} min left` }[locale],
+    message: remaining < 60_000
+      ? { ja: `「${step.name}」まもなく終了です`, zh: `「${step.name}」即将结束`, en: `"${step.name}": less than a minute left` }[locale]
+      : { ja: `「${step.name}」残り${left}分です`, zh: `「${step.name}」还剩 ${left} 分钟`, en: `"${step.name}": ${left} min left` }[locale],
   }];
 };
