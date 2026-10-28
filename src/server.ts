@@ -221,9 +221,11 @@ export function createBatonServer(cfg: BatonServerConfig) {
 
   const server: Server = createServer((req, res) => {
     const url = new URL(req.url ?? '/', 'http://localhost');
-    const route = `${req.method} ${url.pathname}`;
+    // HEAD is answered like GET (Node drops the body): Zoom's Marketplace checks the home URL's OWASP headers with it.
+    const method = req.method === 'HEAD' ? 'GET' : req.method;
+    const route = `${method} ${url.pathname}`;
     if (route === 'GET /') return home(req, res, url);
-    if (req.method === 'GET' && STATIC[url.pathname]) {
+    if (method === 'GET' && STATIC[url.pathname]) {
       res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': STATIC[url.pathname] });
       return void res.end(files[url.pathname]);
     }

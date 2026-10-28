@@ -214,10 +214,12 @@ describe('server', () => {
   });
 
   it('home page has the OWASP headers Zoom requires and a token only for a verified meeting', async () => {
-    const { tokenFor } = await start();
+    const { base, tokenFor } = await start();
     const anon = await tokenFor();
     for (const h of ['strict-transport-security', 'x-content-type-options', 'content-security-policy', 'referrer-policy']) expect(anon.res.headers.get(h)).toBeTruthy();
     expect(anon.token).toBe('');
+    const head = await fetch(`${base}/`, { method: 'HEAD' }); // Marketplace's header check
+    expect([head.status, head.headers.get('content-security-policy')]).toEqual([200, anon.res.headers.get('content-security-policy')]);
     const forged = await tokenFor({ headers: { 'x-zoom-app-context': encryptContext({ typ: 'meeting', uid: 'u', mid: 'M', ts: 1, exp: Date.now() + 60_000 }, 'wrong') } });
     expect(forged.token).toBe('');
     expect((await tokenFor(undefined, '?meeting=not-a-demo')).token).toBe('');
