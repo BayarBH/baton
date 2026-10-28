@@ -31,11 +31,17 @@ export class RtmsSource implements TranscriptSource {
   private wake?: () => void;
   private done = false;
   private readonly t0 = performance.now();
+  private readonly lastSegment = new Map<number, { text: string; startTs: number }>();
 
+  /**
+   * `debug`: called once per transcript segment with its shape, never its text or speaker name — for checking
+   * on a real meeting whether Zoom sends final segments only or interim revisions of the same utterance.
+   */
   constructor(
     private readonly client: RtmsClient,
     readonly meetingId: string,
     private readonly tickMs = 1000,
+    private readonly debug?: (line: string) => void,
   ) {}
 
   private now(): number {
@@ -45,8 +51,23 @@ export class RtmsSource implements TranscriptSource {
   /** Registers callbacks and joins. Participant events are subscribed after join: the SDK subscribes on the live session. */
   join(params: RtmsJoinParams): boolean {
     const meetingId = this.meetingId;
-    this.client.onTranscriptData((buffer, _size, _ts, md) => {
+    this.client.onTranscriptData((buffer, size, ts, md) => {
       const text = buffer.toString('utf8').trim();
+      if (this.debug) {
+        const prev = this.lastSegment.get(md.userId);
+        this.lastSegment.set(md.userId, { text, startTs: md.startTs });
+        this.debug(JSON.stringify({
+          t: this.now(),
+          user: md.userId,
+          ts,
+          startTs: md.startTs,
+          endTs: md.endTs,
+          bytes: size,
+          chars: text.length,
+          sameStart: !!prev && prev.startTs === md.startTs,
+          extendsPrev: !!prev && !!text && !!prev.text && (text.startsWith(prev.text) || prev.text.startsWith(text)),
+        }));
+      }
       if (!text) return;
       const endMs = this.now();
       const dur = md.endTs - md.startTs;

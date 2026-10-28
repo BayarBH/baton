@@ -40,3 +40,5 @@ The RTMS SDK (`@zoom/rtms`) ships for **linux-x64 and darwin-arm64 only**, so on
 Server endpoints: `POST /webhook` (Zoom, signature-verified), `GET /` (home URL; issues a sidebar token for the meeting in the signed `X-Zoom-App-Context`), `GET /events` (SSE to the sidebar), `POST /next` (advance the workshop step).
 
 Each nudge in the sidebar has **采纳 / 忽略** (adopted / ignored; 採用 / 無視 in Japanese) buttons. Verdicts are appended to `data/feedback.jsonl` (rule metadata only, never the nudge text); `npm run feedback` prints the adoption rate per rule.
+
+First real-meeting check: set `BATON_DEBUG_TRANSCRIPT=1` to log each RTMS transcript segment's shape (timestamps, sizes, and whether it repeats/extends the previous segment from the same speaker) — never its text or the speaker name. `sameStart`/`extendsPrev` being true means Zoom sends interim revisions, which would double-count airtime.

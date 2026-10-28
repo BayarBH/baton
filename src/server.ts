@@ -24,6 +24,8 @@ export interface BatonServerConfig {
   createClient?: () => Promise<RtmsClient>;
   /** Meeting ids a plain browser may open as `/?meeting=<id>` without Zoom app context (local demo only). */
   devMeetings?: string[];
+  /** Log each RTMS transcript segment's shape (timestamps, sizes; never text or names) to check Zoom's segmenting. */
+  debugTranscript?: boolean;
   /** Append-only JSONL of the facilitator's adopted/ignored verdicts (no nudge text). Omit to not persist. */
   feedbackFile?: string;
   log?: (msg: string) => void;
@@ -147,7 +149,7 @@ export function createBatonServer(cfg: BatonServerConfig) {
       release();
       throw err;
     }
-    source = new RtmsSource(client, meetingId);
+    source = new RtmsSource(client, meetingId, 1000, cfg.debugTranscript ? (l) => log(`transcript-segment ${short(meetingId)} ${l}`) : undefined);
     if (stopped || meetings.get(meetingId) !== live) return void release(); // stopped while loading the SDK
     if (!source.join({ meeting_uuid: meetingId, rtms_stream_id: streamId, server_urls: serverUrls, client: zoom.clientId, secret: zoom.clientSecret })) {
       release();

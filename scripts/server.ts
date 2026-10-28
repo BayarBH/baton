@@ -46,6 +46,7 @@ const baton = createBatonServer({
   zoom,
   devMeetings: replay ? ['demo'] : [],
   feedbackFile: env.BATON_FEEDBACK_FILE || 'data/feedback.jsonl',
+  debugTranscript: env.BATON_DEBUG_TRANSCRIPT === '1',
   newSession: (meetingId) =>
     meetingId === 'demo' && replay
       ? new Session({ meetingId, locale: replay.fixture.locale, workshop: replay.workshop, llm, llmInBackground: true })
@@ -55,6 +56,7 @@ const baton = createBatonServer({
 const port = Number(env.PORT || 8080);
 baton.server.listen(port, () => {
   console.log(`[baton] listening on http://localhost:${port}`);
+  if (env.BATON_DEBUG_TRANSCRIPT === '1') console.log('[baton] transcript segment debug log: on (shape only, no text)');
   console.log(`[baton] Zoom webhook: ${zoom ? 'POST /webhook' : 'disabled (set ZOOM_CLIENT_ID / ZOOM_CLIENT_SECRET / ZOOM_SECRET_TOKEN)'}`);
   console.log(`[baton] LLM tracking: ${llm ? 'on' : 'off (no ANTHROPIC_API_KEY)'}; Zoom meetings run as: ${workshop ? `workshop "${workshop.title}"` : 'meeting'}`);
   if (replay) {

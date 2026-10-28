@@ -134,6 +134,22 @@ describe('RtmsSource', () => {
     expect(times).toEqual([...times].sort((a, b) => a - b));
   });
 
+  it('debug mode logs segment shape (interim-revision flags) but never text or speaker name', async () => {
+    const client = new FakeClient();
+    const lines: string[] = [];
+    const src = new RtmsSource(client, 'm1', 1000, (l) => lines.push(l));
+    src.join({ meeting_uuid: 'm1', rtms_stream_id: 's1', server_urls: 'x' });
+    const seg = (text: string, startTs: number) => client.transcript!(Buffer.from(text), Buffer.byteLength(text), 42, { userId: 7, userName: '佐藤', startTs, endTs: startTs + 900 });
+    seg('リリース日は', 1000); // first
+    seg('リリース日は来週', 1000); // interim revision of the same utterance
+    seg('はい', 5000); // a new utterance
+    src.stop();
+    const rows = lines.map((l) => JSON.parse(l));
+    expect(rows.map((r) => [r.sameStart, r.extendsPrev])).toEqual([[false, false], [true, true], [false, false]]);
+    expect(rows[1]).toMatchObject({ user: 7, ts: 42, startTs: 1000, endTs: 1900, chars: 8 });
+    expect(lines.join('\n')).not.toMatch(/リリース|はい|佐藤/);
+  });
+
   it('ends immediately when join fails', async () => {
     const src = new RtmsSource(new FakeClient(false), 'm1');
     expect(src.join({ meeting_uuid: 'm1', rtms_stream_id: 's1', server_urls: 'x' })).toBe(false);
