@@ -208,9 +208,10 @@ interface Nudge {
 
 ### Phase 3 — Zoom 接入
 
-- [ ] 基于官方样例实现 `RtmsSource`
-- [ ] Zoom App 侧边栏：当前步骤、倒计时、nudge 列表
-- [ ] server：webhook 接收 + 推送 nudge 到侧边栏
+- [x] 基于官方样例实现 `RtmsSource`
+- [x] Zoom App 侧边栏：当前步骤、倒计时、nudge 列表
+- [x] server：webhook 接收 + 推送 nudge 到侧边栏（SSE；侧边栏每条 nudge 可标记「采纳/忽略」，记录到 `data/feedback.jsonl`，`npm run feedback` 按规则统计采纳率，用于验证 §9 假设 2）
+- [ ] 真实 Zoom 会议人工验收（需 §7 人类事项；`@zoom/rtms` 仅支持 linux-x64 / darwin-arm64，Windows 上需在 WSL2 或 Docker 中运行 server）
 
 **验收**：在真实 Zoom 会议中，侧边栏实时显示 nudge（需人工验收）。
 
@@ -234,7 +235,7 @@ interface Nudge {
 
 - **绝不提交凭证**：所有 secret 只来自环境变量；`.env` 必须在 `.gitignore` 中
 - **不要凭记忆写 Zoom API**：不确定的接口先查官方文档和样例
-- **多语言**：转写可能是中日英混说；nudge 文案按 `locale` 输出，不要假设单一语言
+- **多语言**：转写可能是中日英混说；nudge 文案按 `locale` 输出，不要假设单一语言。**默认语言为中文（`zh`）**：会议模式默认 `BATON_LOCALE=zh`，侧边栏无法识别浏览器语言时显示中文
 - **隐私**：日志中不写入完整转写原文，只保留 nudge 与 ruleId；fixture 中不放真实个人信息
 - **每个 Phase 结束时**：运行全部测试，更新本文件中的任务勾选状态
 

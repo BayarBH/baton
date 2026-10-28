@@ -8,7 +8,7 @@ const listEn = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')}
  */
 export const silentParticipant: Rule = ({ state, step, nowMs, locale, config, wasSent }) => {
   if (step?.silentWork || state.workshopFinished || state.ended) return [];
-  const present = Object.entries(state.participants).filter(([, p]) => p.leftAtMs === undefined && p.joinedAtMs <= nowMs);
+  const present = Object.entries(state.participants).filter(([, p]) => p.name && p.leftAtMs === undefined && p.joinedAtMs <= nowMs);
   const since = (id: string) =>
     Math.max(state.participants[id].joinedAtMs, state.airtime[id]?.lastSpokeAtMs ?? 0, state.silentWorkEndedAtMs ?? 0);
   const silent = present.filter(([id]) => nowMs - since(id) >= config.silentAfterMs);

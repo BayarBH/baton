@@ -35,6 +35,21 @@ export interface SessionConfig {
   /** Omit to run rules-only (no decisions / action items / recap). */
   llm?: LlmProvider;
   llmTracker?: LlmTrackerConfig;
+  /**
+   * Live meetings: run periodic LLM extraction in the background so a slow call never delays timebox nudges or "next step".
+   * The end of the meeting and the start of the last workshop step still wait for a fresh extraction (the recap needs it).
+   * Off by default so replays and tests stay deterministic.
+   */
+  llmInBackground?: boolean;
+}
+
+/** What the sidebar shows besides nudges. Times are meeting time (ms since start). */
+export interface SessionStatus {
+  locale: Locale;
+  mode: MeetingState['mode'];
+  elapsedMs: number;
+  ended: boolean;
+  step?: { name: string; goal: string; script?: string; index: number; count: number; startedAtMs: number; timeboxMs: number };
 }
 
 export class Session {
@@ -45,6 +60,9 @@ export class Session {
   private readonly locale: Locale;
   readonly llm?: LlmTracker;
   private lastStepSeen?: string;
+  private readonly llmInBackground: boolean;
+  private inflight?: Promise<void>;
+  private llmError?: unknown;
 
   constructor(cfg: SessionConfig) {
     this.state = createState(cfg.meetingId, cfg.workshop ? 'workshop' : 'meeting');
@@ -54,6 +72,7 @@ export class Session {
     this.rules = { ...DEFAULT_RULES, ...cfg.rules };
     this.locale = cfg.workshop?.locale ?? cfg.locale;
     this.llm = cfg.llm && new LlmTracker(cfg.llm, this.locale, cfg.llmTracker);
+    this.llmInBackground = !!cfg.llmInBackground;
   }
 
   async handle(ev: SourceEvent): Promise<Nudge[]> {
@@ -66,7 +85,7 @@ export class Session {
     // Force a fresh extraction for the final recap: at the end, and when the last workshop step begins.
     const enteredLastStep = this.state.currentStepId !== this.lastStepSeen && !!this.runner?.current(this.state) && !this.runner.next(this.state);
     this.lastStepSeen = this.state.currentStepId;
-    if (this.llm && (ev.type === 'end' || enteredLastStep || this.llm.due(ev.atMs))) await this.llm.update(this.state, ev.atMs);
+    if (this.llm) await this.updateLlm(ev.type === 'end' || enteredLastStep, ev.atMs);
     const ctx = {
       state: this.state,
       nowMs: ev.atMs,
@@ -77,6 +96,41 @@ export class Session {
       wasSent: (k: string) => this.engine.wasSent(k),
     };
     return this.engine.decide(RULES.flatMap((r) => r(ctx)), ev.atMs);
+  }
+
+  private async updateLlm(force: boolean, nowMs: number): Promise<void> {
+    const llm = this.llm!;
+    if (this.llmError) throw this.llmError; // a fatal error (LlmConfigError) from a background call
+    if (force || (!this.llmInBackground && llm.due(nowMs))) {
+      await this.inflight; // never two extractions at once
+      if (this.llmError) throw this.llmError;
+      await llm.update(this.state, nowMs);
+    } else if (this.llmInBackground && !this.inflight && llm.due(nowMs)) {
+      this.inflight = llm
+        .update(this.state, nowMs)
+        .catch((err) => void (this.llmError = err))
+        .finally(() => (this.inflight = undefined));
+    }
+  }
+
+  status(): SessionStatus {
+    const { state, runner } = this;
+    const step = state.ended ? undefined : runner?.current(state);
+    return {
+      locale: this.locale,
+      mode: state.mode,
+      elapsedMs: state.elapsedMs,
+      ended: !!state.ended,
+      step: step && {
+        name: step.name,
+        goal: step.goal,
+        script: step.facilitatorScript,
+        index: runner!.script.steps.indexOf(step),
+        count: runner!.script.steps.length,
+        startedAtMs: state.stepStartedAtMs ?? 0,
+        timeboxMs: step.timeboxMin * 60_000,
+      },
+    };
   }
 }
 

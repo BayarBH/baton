@@ -38,10 +38,7 @@ export class LlmTracker {
     return this.pending > 0 && (this.pending >= this.cfg.maxPending || nowMs - this.lastRunMs >= this.cfg.intervalMs);
   }
 
-  /**
-   * Awaited inline, so replay is deterministic.
-   * ponytail: blocks the event loop's clock for one LLM round-trip per minute; move to background if live timebox nudges lag.
-   */
+  /** Awaited inline by replays (deterministic); live sessions run it in the background (Session.llmInBackground). */
   async update(state: MeetingState, nowMs: number): Promise<void> {
     if (!this.pending) return;
     const batch = this.pending;

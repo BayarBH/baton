@@ -1,0 +1,85 @@
+{
+  "id": "design-sprint-lite",
+  "title": "设计冲刺（1小时精简版）",
+  "locale": "zh",
+  "steps": [
+    {
+      "id": "goal",
+      "name": "长期目标",
+      "timeboxMin": 5,
+      "goal": "用一句话对齐：两年后希望这个项目变成什么样",
+      "expectedOutput": { "description": "一句长期目标" },
+      "transition": "on_timebox",
+      "warnAtRemainingMin": [1],
+      "facilitatorScript": "乐观地想一想：两年后，我们希望这个产品是什么样子？"
+    },
+    {
+      "id": "map",
+      "name": "用户地图",
+      "timeboxMin": 7,
+      "goal": "从左到右简单画出用户到达目标的流程",
+      "expectedOutput": { "description": "5～15 步左右的用户旅程" },
+      "transition": "on_timebox",
+      "warnAtRemainingMin": [2],
+      "facilitatorScript": "左边写角色，右边写目标，中间用简单的箭头连起来。"
+    },
+    {
+      "id": "hmw",
+      "name": "我们可以如何（HMW）",
+      "timeboxMin": 8,
+      "goal": "把问题改写成「我们可以如何……？」的提问",
+      "expectedOutput": { "description": "每人至少 3 张 HMW 便利贴", "perParticipant": 3 },
+      "transition": "either",
+      "warnAtRemainingMin": [2],
+      "facilitatorScript": "每人每张便利贴写一个「我们可以如何……？」。"
+    },
+    {
+      "id": "crazy8",
+      "name": "疯狂八分钟（Crazy 8s）",
+      "timeboxMin": 8,
+      "goal": "每人安静地画出 8 个草图方案",
+      "expectedOutput": { "description": "每人 8 格草图", "perParticipant": 8 },
+      "transition": "on_timebox",
+      "warnAtRemainingMin": [1],
+      "silentWork": true,
+      "facilitatorScript": "把纸折成 8 格，每格 1 分钟。安静地画，先不讨论。"
+    },
+    {
+      "id": "vote",
+      "name": "点投票",
+      "timeboxMin": 5,
+      "goal": "每人给感兴趣的方案贴点",
+      "expectedOutput": { "description": "每人 3 票", "perParticipant": 3 },
+      "transition": "on_timebox",
+      "facilitatorScript": "请安静投票，每人 3 票，同一个方案可以投多票。"
+    },
+    {
+      "id": "decide",
+      "name": "拍板",
+      "timeboxMin": 5,
+      "goal": "决策者选出要做原型的方案",
+      "expectedOutput": { "description": "选定的 1 个方案及理由" },
+      "transition": "manual",
+      "warnAtRemainingMin": [1],
+      "facilitatorScript": "先看投票结果，由决策者做最终决定，讨论放在决定之后。"
+    },
+    {
+      "id": "storyboard",
+      "name": "故事板",
+      "timeboxMin": 10,
+      "goal": "把选中的方案画成 6～8 格的故事",
+      "expectedOutput": { "description": "6～8 格故事板" },
+      "transition": "on_timebox",
+      "warnAtRemainingMin": [2],
+      "facilitatorScript": "从用户第一眼看到的画面开始，一格一格往后填。"
+    },
+    {
+      "id": "recap",
+      "name": "总结",
+      "timeboxMin": 3,
+      "goal": "确认决定、下一步行动和负责人",
+      "transition": "manual",
+      "facilitatorScript": "我们确认一下：定了什么、下一步做什么、谁来负责。"
+    }
+  ]
+}

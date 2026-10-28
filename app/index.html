@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="baton-token" content="{{TOKEN}}">
+  <title>Baton</title>
+  <link rel="stylesheet" href="/app/sidebar.css">
+  <script src="https://appssdk.zoom.us/sdk.js"></script>
+  <script type="module" src="/app/sidebar.js"></script>
+</head>
+<body>
+  <header>
+    <div id="brand"></div>
+    <button id="start" hidden></button>
+  </header>
+  <section id="step" hidden>
+    <div class="row"><span id="step-index"></span><span id="clock"></span></div>
+    <h1 id="step-name"></h1>
+    <p id="step-goal"></p>
+    <p id="step-script"></p>
+    <button id="next"></button>
+  </section>
+  <p id="notice"></p>
+  <ol id="nudges"></ol>
+</body>
+</html>

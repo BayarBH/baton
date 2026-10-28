@@ -6,7 +6,9 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "replay": "tsx scripts/replay.ts"
+    "replay": "tsx scripts/replay.ts",
+    "server": "tsx scripts/server.ts",
+    "feedback": "tsx scripts/feedback.ts"
   },
   "license": "MIT",
   "type": "module",
@@ -21,5 +23,8 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.0",
     "vitest": "^5.0.5"
+  },
+  "optionalDependencies": {
+    "@zoom/rtms": "^1.1.0"
   }
 }

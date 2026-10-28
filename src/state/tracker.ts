@@ -14,6 +14,7 @@ export function track(state: MeetingState, ev: SourceEvent): void {
     state.elapsedMs = Math.max(state.elapsedMs, ev.endMs);
     state.participants[ev.speakerId] ??= { name: ev.speakerName, joinedAtMs: ev.startMs };
     const p = state.participants[ev.speakerId];
+    p.name ||= ev.speakerName; // RTMS join events may omit userName
     if (p.leftAtMs !== undefined && ev.startMs > p.leftAtMs) delete p.leftAtMs; // speaking after leaving proves presence (reconnect race)
     const a = (state.airtime[ev.speakerId] ??= { totalMs: 0, lastSpokeAtMs: 0 });
     a.totalMs += Math.max(0, ev.endMs - Math.max(ev.startMs, a.lastSpokeAtMs)); // events arrive by endMs, so this unions overlaps

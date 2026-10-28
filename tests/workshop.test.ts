@@ -15,3 +15,13 @@ describe('workshop schema', () => {
     expect(WorkshopScriptSchema.safeParse({ id: 'x', title: 't', locale: 'en', steps: [{ ...step, transition: 'later' }] }).success).toBe(false);
   });
 });
+
+describe('Chinese workshop script (default language)', () => {
+  it('loads and announces steps in Chinese', async () => {
+    const { Session } = await import('../src/session.js');
+    const workshop = loadWorkshop('fixtures/workshops/design-sprint-lite.zh.json');
+    const nudges = await new Session({ meetingId: 'm', locale: 'zh', workshop }).handle({ type: 'tick', atMs: 0 });
+    expect(nudges[0]?.message).toContain('长期目标');
+    expect(workshop.locale).toBe('zh');
+  });
+});
